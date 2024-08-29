@@ -15,6 +15,11 @@ import { VicoMainService } from './vicoMain.service';
     VicoArchiveService,
     VicoMainService,
   ],
-  exports: [ProfileService, StorageService, VicoMainService],
+  exports: [
+    ProfileService,
+    StorageService,
+    VicoMainService,
+    VicoArchiveService,
+  ],
 })
 export class DBServiceModule {}

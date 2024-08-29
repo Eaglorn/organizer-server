@@ -42,7 +42,10 @@ export class VicoMainService {
     });
   }
 
-  async delete(where: Prisma.VicoMainWhereUniqueInput): Promise<VicoMain> {
+  async delete(params: {
+    where: Prisma.VicoMainWhereUniqueInput;
+  }): Promise<VicoMain> {
+    const { where } = params;
     return this.prisma.vicoMain.delete({
       where,
     });

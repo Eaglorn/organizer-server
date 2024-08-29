@@ -6,27 +6,29 @@ import { VicoArchive, Prisma } from '@prisma/client';
 export class VicoArchiveService {
   constructor(private prisma: PrismaService) {}
 
-  async vicoArchive(
-    vicoArchiveWhereUniqueInput: Prisma.VicoArchiveWhereUniqueInput,
-  ): Promise<VicoArchive | null> {
-    return this.prisma.vicoArchive.findUnique({
-      where: vicoArchiveWhereUniqueInput,
+  async one(params: {
+    where: Prisma.VicoArchiveWhereInput;
+  }): Promise<VicoArchive | null> {
+    const { where } = params;
+    return this.prisma.vicoArchive.findFirst({
+      where,
     });
   }
 
-  async vicoArchives(): Promise<VicoArchive[]> {
+  async all(): Promise<VicoArchive[]> {
     return this.prisma.vicoArchive.findMany();
   }
 
-  async createVicoArchive(
-    data: Prisma.VicoArchiveCreateInput,
-  ): Promise<VicoArchive> {
+  async create(params: {
+    data: Prisma.VicoArchiveCreateInput;
+  }): Promise<VicoArchive> {
+    const { data } = params;
     return this.prisma.vicoArchive.create({
       data,
     });
   }
 
-  async updateVicoArchive(params: {
+  async update(params: {
     where: Prisma.VicoArchiveWhereUniqueInput;
     data: Prisma.VicoArchiveUpdateInput;
   }): Promise<VicoArchive> {
@@ -37,7 +39,7 @@ export class VicoArchiveService {
     });
   }
 
-  async deleteVicoArchive(
+  async delete(
     where: Prisma.VicoArchiveWhereUniqueInput,
   ): Promise<VicoArchive> {
     return this.prisma.vicoArchive.delete({
