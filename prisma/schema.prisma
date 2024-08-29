@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi", "relationJoins", "typedSql"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Storage {
+  id   Int    @id @default(autoincrement())
+  name String
+  data Json
+}
+
+model VicoMain {
+  id                   Int      @id @default(autoincrement())
+  dateTimeStart        Int
+  dateTimeEnd          Int
+  objectInitiator      String
+  objectInvited        String[]
+  typeVico             String
+  topic                String
+  departamentInitiator String
+  departamentInvited   String[]
+  contactName          String
+  contactPhone         String
+  videoRecord          Boolean  @default(false)
+}
+
+model VicoArchive {
+  id                   Int      @id @default(autoincrement())
+  dateTimeStart        Int
+  dateTimeEnd          Int
+  objectInitiator      String
+  objectInvited        String[]
+  typeVico             String
+  topic                String
+  departamentInitiator String
+  departamentInvited   String[]
+  contactName          String
+  contactPhone         String
+  videoRecord          Boolean  @default(false)
+}
+
+model Profile {
+  id        Int        @id @default(autoincrement())
+  login     String
+  role      Int        @default(0) @db.SmallInt // 0-guest,1-user,2-moderator,3-admin,4-root
+  subscribe Subscribe?
+}
+
+model Subscribe {
+  id          Int      @id @default(autoincrement())
+  object      String[] @default([])
+  departament String[] @default([])
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  profileId   Int      @unique
+}
