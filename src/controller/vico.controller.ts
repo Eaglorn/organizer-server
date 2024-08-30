@@ -1,6 +1,6 @@
 import { Inject, Controller, Post, Req, Res, Ip } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { DateTimeService } from '../utils/dateTime.service';
+import { DateTimeService } from '../util/dateTime.service';
 import { ProfileService } from '../db/profile.service';
 import { VicoMainService } from '../db/vicoMain.service';
 import {
@@ -8,13 +8,14 @@ import {
   VicoMain as VicoMainModel,
   VicoArchive as VicoArchiveModel,
 } from '@prisma/client';
-import { OptionService } from '../utils/option.service';
+import { OptionService } from '../util/option.service';
 import { WebsocketsGateway } from '../gateway/websockets.gateway';
-import { unique, intersects } from 'radash';
+import { unique, intersects, list } from 'radash';
 import { DateTime } from 'luxon';
 import { VicoArchiveService } from 'src/db/vicoArchive.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('vico')
 export class VicoController {
@@ -28,6 +29,7 @@ export class VicoController {
     private readonly vicoArchiveService: VicoArchiveService,
   ) {}
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('one')
   async one(
     @Req() request: FastifyRequest,
@@ -61,6 +63,7 @@ export class VicoController {
     }
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('all')
   async all(
     @Req() request: FastifyRequest,
@@ -86,6 +89,7 @@ export class VicoController {
     }
   }
 
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
   @Post('create')
   async create(
     @Req() request: FastifyRequest,
@@ -220,6 +224,7 @@ export class VicoController {
     }
   }
 
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
   @Post('update')
   async update(
     @Req() request: FastifyRequest,
@@ -362,6 +367,7 @@ export class VicoController {
     }
   }
 
+  @Throttle({ default: { limit: 1, ttl: 10000 } })
   @Post('moved')
   async moved(
     @Req() request: FastifyRequest,
@@ -406,6 +412,7 @@ export class VicoController {
           computer: body.computer,
           archive: result,
         });
+        response.send({ success: true });
       }
     } catch (err) {
       console.log(err);
@@ -422,6 +429,7 @@ export class VicoController {
     }
   }
 
+  @Throttle({ default: { limit: 1, ttl: 10000 } })
   @Post('delete')
   async delete(
     @Req() request: FastifyRequest,

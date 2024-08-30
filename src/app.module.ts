@@ -1,12 +1,27 @@
 import { Module } from '@nestjs/common';
 import { DBServiceModule } from './db/db.module';
 import { WebsocketsGatewayModule } from './gateway/websockets.module';
-import { UtilsModule } from './utils/utils.module';
-import { ControllerModule } from './controllers/controller.module';
+import { UtilsModule } from './util/utils.module';
+import { ControllerModule } from './controller/controller.module';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TaskModule } from './task/task.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 @Module({
   imports: [
+    ThrottlerModule.forRoot([]),
+    DBServiceModule,
+    WebsocketsGatewayModule,
+    DBServiceModule,
+    ControllerModule,
+    UtilsModule,
+    ScheduleModule.forRoot(),
+    TaskModule,
     WinstonModule.forRoot({
       transports: [
         new winston.transports.File({
@@ -39,11 +54,12 @@ import * as winston from 'winston';
         }),
       ],
     }),
-    DBServiceModule,
-    WebsocketsGatewayModule,
-    DBServiceModule,
-    ControllerModule,
-    UtilsModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

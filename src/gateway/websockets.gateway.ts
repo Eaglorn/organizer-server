@@ -14,7 +14,7 @@ import {
   Storage as StorageModel,
   VicoMain as VicoMainModel,
 } from '@prisma/client';
-import { OptionService } from '../utils/option.service';
+import { OptionService } from '../util/option.service';
 
 import { intersects } from 'radash';
 
