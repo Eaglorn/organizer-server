@@ -25,7 +25,8 @@
     "pm2:restart": "pm2 restart app",
     "pm2:reload": "pm2 reload app",
     "pm2:stop": "pm2 stop app",
-    "pm2:delete": "pm2 delete app"
+    "pm2:delete": "pm2 delete app",
+    "documentation": "npx @compodoc/compodoc -p tsconfig.json -s"
   },
   "dependencies": {
     "@fastify/compress": "^7.0.3",
@@ -53,6 +54,7 @@
     "winston": "^3.14.2"
   },
   "devDependencies": {
+    "@compodoc/compodoc": "^1.1.25",
     "@nestjs/cli": "^10.4.4",
     "@nestjs/schematics": "^10.1.4",
     "@prisma/studio": "^0.502.0",
