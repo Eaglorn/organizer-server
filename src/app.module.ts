@@ -9,8 +9,25 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { Format, format } from 'logform';
+
+class TimestampFirst {
+  enabled: boolean;
+  constructor(enabled: boolean = true) {
+    this.enabled = enabled;
+  }
+  transform(obj: any): any {
+    if (this.enabled) {
+      return Object.assign(
+        {
+          timestamp: obj.timestamp,
+        },
+        obj,
+      );
+    }
+    return obj;
+  }
+}
 
 @Module({
   imports: [
@@ -25,11 +42,10 @@ import { join } from 'path';
     WinstonModule.forRoot({
       transports: [
         new winston.transports.File({
-          format: winston.format.combine(
-            winston.format.timestamp({
-              format: 'DD-MM-YYYY HH:mm:ss',
-            }),
-            winston.format.json(),
+          format: format.combine(
+            format.timestamp({ format: 'DD-MM-YYYY HH:mm:ss' }),
+            new TimestampFirst(true),
+            format.json({ deterministic: false }),
           ),
           dirname: './logs/app/info/',
           filename: 'info.log',
@@ -39,11 +55,10 @@ import { join } from 'path';
           zippedArchive: true,
         }),
         new winston.transports.File({
-          format: winston.format.combine(
-            winston.format.timestamp({
-              format: 'DD-MM-YYYY HH:mm:ss',
-            }),
-            winston.format.json(),
+          format: format.combine(
+            format.timestamp({ format: 'DD-MM-YYYY HH:mm:ss' }),
+            new TimestampFirst(true),
+            format.json({ deterministic: false }),
           ),
           dirname: './logs/app/error/',
           filename: 'error.log',

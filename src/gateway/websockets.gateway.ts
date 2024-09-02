@@ -38,7 +38,9 @@ export class WebsocketsGateway
 
   @WebSocketServer() server: Server;
 
-  afterInit(server: Server) {}
+  afterInit(server: Server) {
+    console.log('Websocket Started');
+  }
 
   handleDisconnect(client: Socket) {
     this.clients.delete(client);

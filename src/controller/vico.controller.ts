@@ -10,7 +10,7 @@ import {
 } from '@prisma/client';
 import { OptionService } from '../util/option.service';
 import { WebsocketsGateway } from '../gateway/websockets.gateway';
-import { unique, intersects, list } from 'radash';
+import { unique, intersects } from 'radash';
 import { DateTime } from 'luxon';
 import { VicoArchiveService } from 'src/db/vicoArchive.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -28,6 +28,38 @@ export class VicoController {
     private readonly vicoMainService: VicoMainService,
     private readonly vicoArchiveService: VicoArchiveService,
   ) {}
+
+  private isAccess(
+    body: any,
+    profile: ProfileModel,
+    textAdmin: string,
+    textBeforeDay: string,
+    textBeforeStart: string,
+  ): { success: boolean; message: string } {
+    let access = { success: true, message: '' };
+    if (
+      profile.role < 1 &&
+      !intersects(this.options.superAdministrator, [body.login.toLowerCase()])
+    ) {
+      access = {
+        success: false,
+        message: textAdmin,
+      };
+    }
+    if (this.dateTime.checkBefore(body.vico.dateTimeStart)) {
+      access = {
+        success: false,
+        message: textBeforeDay,
+      };
+    }
+    if (body.vico.dateTimeStart > body.vico.dateTimeEnd) {
+      access = {
+        success: false,
+        message: textBeforeStart,
+      };
+    }
+    return access;
+  }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('one')
@@ -105,28 +137,13 @@ export class VicoController {
       const profile: ProfileModel = await this.profileService.one({
         where: { login: body.login.toLowerCase() },
       });
-      let access = { success: true, message: '' };
-      if (
-        profile.role < 1 &&
-        !intersects(this.options.superAdministrator, [body.login.toLowerCase()])
-      ) {
-        access = {
-          success: false,
-          message: 'У вас нет прав на создания записи ВКС',
-        };
-      }
-      if (this.dateTime.checkBefore(body.vico.dateTimeStart)) {
-        access = {
-          success: false,
-          message: 'Запись ВКС не может быть создана в прошедших днях',
-        };
-      }
-      if (body.vico.dateTimeStart > body.vico.dateTimeEnd) {
-        access = {
-          success: false,
-          message: 'Начало ВКС не может быть позднее окончания',
-        };
-      }
+      const access = this.isAccess(
+        body,
+        profile,
+        'У вас нет прав на создания записи ВКС',
+        'Запись ВКС не может быть создана в прошедших днях',
+        'Начало ВКС не может быть позднее окончания',
+      );
       if (!access.success) {
         response.send({ success: false, message: access.message });
       } else {
@@ -241,28 +258,13 @@ export class VicoController {
       const profile: ProfileModel = await this.profileService.one({
         where: { login: body.login.toLowerCase() },
       });
-      let access = { success: true, message: '' };
-      if (
-        profile.role < 1 &&
-        !intersects(this.options.superAdministrator, [body.login.toLowerCase()])
-      ) {
-        access = {
-          success: false,
-          message: 'У вас нет прав на изменение записи ВКС',
-        };
-      }
-      if (this.dateTime.checkBefore(body.vico.dateTimeStart)) {
-        access = {
-          success: false,
-          message: 'Запись ВКС не может быть изменена на прошедший день',
-        };
-      }
-      if (body.vico.dateTimeStart > body.vico.dateTimeEnd) {
-        access = {
-          success: false,
-          message: 'Начало ВКС не может быть позднее окончания',
-        };
-      }
+      const access = this.isAccess(
+        body,
+        profile,
+        'У вас нет прав на изменение записи ВКС',
+        'Запись ВКС не может быть изменена на прошедший день',
+        'Начало ВКС не может быть позднее окончания',
+      );
       if (!access.success) {
         response.send({ success: false, message: access.message });
       } else {
