@@ -1,21 +1,21 @@
-import { Inject, Controller, Post, Req, Res, Ip } from '@nestjs/common';
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { DateTimeService } from '../util/dateTime.service';
-import { ProfileService } from '../db/profile.service';
-import { VicoMainService } from '../db/vicoMain.service';
+import { Inject, Controller, Post, Req, Res, Ip } from '@nestjs/common'
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { DateTimeService } from '../util/dateTime.service'
+import { ProfileService } from '../db/profile.service'
+import { VicoMainService } from '../db/vicoMain.service'
 import {
   Profile as ProfileModel,
   VicoMain as VicoMainModel,
   VicoArchive as VicoArchiveModel,
-} from '@prisma/client';
-import { OptionService } from '../util/option.service';
-import { WebsocketsGateway } from '../gateway/websockets.gateway';
-import { unique, intersects } from 'radash';
-import { DateTime } from 'luxon';
-import { VicoArchiveService } from 'src/db/vicoArchive.service';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { Logger } from 'winston';
-import { Throttle } from '@nestjs/throttler';
+} from '@prisma/client'
+import { OptionService } from '../util/option.service'
+import { WebsocketsGateway } from '../gateway/websockets.gateway'
+import { unique, intersects } from 'radash'
+import { DateTime } from 'luxon'
+import { VicoArchiveService } from '../db/vicoArchive.service'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
+import { Logger } from 'winston'
+import { Throttle } from '@nestjs/throttler'
 
 @Controller('vico')
 export class VicoController {
@@ -26,7 +26,7 @@ export class VicoController {
     private readonly dateTime: DateTimeService,
     private readonly profileService: ProfileService,
     private readonly vicoMainService: VicoMainService,
-    private readonly vicoArchiveService: VicoArchiveService,
+    private readonly vicoArchiveService: VicoArchiveService
   ) {}
 
   private isAccess(
@@ -34,9 +34,9 @@ export class VicoController {
     profile: ProfileModel,
     textAdmin: string,
     textBeforeDay: string,
-    textBeforeStart: string,
+    textBeforeStart: string
   ): { success: boolean; message: string } {
-    let access = { success: true, message: '' };
+    let access = { success: true, message: '' }
     if (
       profile.role < 1 &&
       !intersects(this.options.superAdministrator, [body.login.toLowerCase()])
@@ -44,21 +44,21 @@ export class VicoController {
       access = {
         success: false,
         message: textAdmin,
-      };
+      }
     }
     if (this.dateTime.checkBefore(body.vico.dateTimeStart)) {
       access = {
         success: false,
         message: textBeforeDay,
-      };
+      }
     }
     if (body.vico.dateTimeStart > body.vico.dateTimeEnd) {
       access = {
         success: false,
         message: textBeforeStart,
-      };
+      }
     }
-    return access;
+    return access
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -66,32 +66,32 @@ export class VicoController {
   async one(
     @Req() request: FastifyRequest,
     @Res() response: FastifyReply,
-    @Ip() ip: string,
+    @Ip() ip: string
   ) {
     const body = request.body as {
-      id: number;
-      login: string;
-      computer: string;
-    };
+      id: number
+      login: string
+      computer: string
+    }
     try {
       const vico = await this.vicoMainService.one({
         where: {
           id: body.id,
         },
-      });
-      response.send({ success: true, vico });
+      })
+      response.send({ success: true, vico })
     } catch (err) {
-      console.log(err);
+      console.log(err)
       this.logger.error({
         type: 'vico-one',
         ip: ip,
         login: body.login,
         computer: body.computer,
-      });
+      })
       response.send({
         success: false,
         message: 'Непредвиденная ошибка на сервере',
-      });
+      })
     }
   }
 
@@ -100,24 +100,24 @@ export class VicoController {
   async all(
     @Req() request: FastifyRequest,
     @Res() response: FastifyReply,
-    @Ip() ip: string,
+    @Ip() ip: string
   ) {
-    const body = request.body as { login: string; computer: string };
+    const body = request.body as { login: string; computer: string }
     try {
-      const vicos = await this.vicoMainService.all({ where: {} });
-      response.send({ success: true, vicos });
+      const vicos = await this.vicoMainService.all({ where: {} })
+      response.send({ success: true, vicos })
     } catch (err) {
-      console.log(err);
+      console.log(err)
       this.logger.error({
         type: 'vico-all',
         ip: ip,
         login: body.login,
         computer: body.computer,
-      });
+      })
       response.send({
         success: false,
         message: 'Непредвиденная ошибка на сервере',
-      });
+      })
     }
   }
 
@@ -126,32 +126,32 @@ export class VicoController {
   async create(
     @Req() request: FastifyRequest,
     @Res() response: FastifyReply,
-    @Ip() ip: string,
+    @Ip() ip: string
   ) {
     const body = request.body as {
-      vico: VicoMainModel;
-      login: string;
-      computer: string;
-    };
+      vico: VicoMainModel
+      login: string
+      computer: string
+    }
     try {
       const profile: ProfileModel = await this.profileService.one({
         where: { login: body.login.toLowerCase() },
-      });
+      })
       const access = this.isAccess(
         body,
         profile,
         'У вас нет прав на создания записи ВКС',
         'Запись ВКС не может быть создана в прошедших днях',
-        'Начало ВКС не может быть позднее окончания',
-      );
+        'Начало ВКС не может быть позднее окончания'
+      )
       if (!access.success) {
-        response.send({ success: false, message: access.message });
+        response.send({ success: false, message: access.message })
       } else {
-        let typeVico = {};
+        let typeVico = {}
         if (body.vico.typeVico === 'Допрос') {
-          typeVico = body.vico.typeVico;
+          typeVico = body.vico.typeVico
         } else {
-          typeVico = { not: 'Допрос' };
+          typeVico = { not: 'Допрос' }
         }
         const vicos: VicoMainModel[] = await this.vicoMainService.all({
           where: {
@@ -165,79 +165,79 @@ export class VicoController {
             },
             typeVico,
           },
-        });
-        let isVicoCreate = false;
+        })
+        let isVicoCreate = false
         if (vicos.length > 0) {
-          let isCollision = false;
-          const objectCollision = new Set();
+          let isCollision = false
+          const objectCollision = new Set()
           vicos.forEach((vico) => {
             if (
               this.dateTime.checkIntersection(
                 body.vico.dateTimeStart,
                 body.vico.dateTimeEnd,
                 vico.dateTimeStart,
-                vico.dateTimeEnd,
+                vico.dateTimeEnd
               )
             ) {
               const vicoSet = new Set([
                 vico.objectInitiator,
                 ...vico.objectInvited,
-              ]);
+              ])
               const combinedArray = [
                 body.vico.objectInitiator,
                 ...body.vico.objectInvited,
-              ];
+              ]
               combinedArray.forEach((item) => {
                 if (vicoSet.has(item)) {
-                  isCollision = true;
+                  isCollision = true
                   objectCollision.add({
                     object: item,
                     timeStart: vico.dateTimeStart,
                     timeEnd: vico.dateTimeEnd,
-                  });
+                  })
                 }
-              });
+              })
             }
-          });
+          })
           if (isCollision) {
             response.send({
               success: true,
               collision: true,
               message: unique(Array.from(objectCollision)),
-            });
+            })
           } else {
-            isVicoCreate = true;
+            isVicoCreate = true
           }
         } else {
-          isVicoCreate = true;
+          isVicoCreate = true
         }
         if (isVicoCreate) {
           const vicoNew = await this.vicoMainService.create({
             data: body.vico,
-          });
+          })
           this.logger.info({
             type: 'vico-create',
             ip: ip,
             login: body.login,
             computer: body.computer,
             vico: vicoNew,
-          });
-          this.socket.server.emit('vicoCreate', vicoNew);
-          response.send({ success: true });
+          })
+          this.socket.server.emit('vicoCreate', vicoNew)
+          response.send({ success: true })
         }
       }
     } catch (err) {
-      console.log(err);
+      console.log(err)
       this.logger.error({
         type: 'vico-create',
         ip: ip,
         login: body.login,
         computer: body.computer,
-      });
+      })
       response.send({
         success: false,
         message: 'Непредвиденная ошибка на сервере',
-      });
+      })
     }
   }
 
@@ -246,33 +246,33 @@ export class VicoController {
   async update(
     @Req() request: FastifyRequest,
     @Res() response: FastifyReply,
-    @Ip() ip: string,
+    @Ip() ip: string
   ) {
     const body = request.body as {
-      id: number;
-      vico: VicoMainModel;
-      login: string;
-      computer: string;
-    };
+      id: number
+      vico: VicoMainModel
+      login: string
+      computer: string
+    }
     try {
       const profile: ProfileModel = await this.profileService.one({
         where: { login: body.login.toLowerCase() },
-      });
+      })
       const access = this.isAccess(
         body,
         profile,
         'У вас нет прав на изменение записи ВКС',
         'Запись ВКС не может быть изменена на прошедший день',
-        'Начало ВКС не может быть позднее окончания',
-      );
+        'Начало ВКС не может быть позднее окончания'
+      )
       if (!access.success) {
-        response.send({ success: false, message: access.message });
+        response.send({ success: false, message: access.message })
       } else {
-        let typeVico = {};
+        let typeVico = {}
         if (body.vico.typeVico === 'Допрос') {
-          typeVico = body.vico.typeVico;
+          typeVico = body.vico.typeVico
         } else {
-          typeVico = { not: 'Допрос' };
+          typeVico = { not: 'Допрос' }
         }
         const vicos: VicoMainModel[] = await this.vicoMainService.all({
           where: {
@@ -287,61 +287,61 @@ export class VicoController {
             },
             typeVico,
           },
-        });
-        let isVicoEdit = false;
+        })
+        let isVicoEdit = false
         if (vicos.length > 0) {
-          let isCollision = false;
-          const objectCollision = new Set();
+          let isCollision = false
+          const objectCollision = new Set()
           vicos.forEach((vico) => {
             if (
               this.dateTime.checkIntersection(
                 body.vico.dateTimeStart,
                 body.vico.dateTimeEnd,
                 vico.dateTimeStart,
-                vico.dateTimeEnd,
+                vico.dateTimeEnd
               )
             ) {
               const vicoSet = new Set([
                 vico.objectInitiator,
                 ...vico.objectInvited,
-              ]);
+              ])
               const combinedArray = [
                 body.vico.objectInitiator,
                 ...body.vico.objectInvited,
-              ];
+              ]
 
               combinedArray.forEach((item) => {
                 if (vicoSet.has(item)) {
-                  isCollision = true;
+                  isCollision = true
                   objectCollision.add({
                     object: item,
                     timeStart: vico.dateTimeStart,
                     timeEnd: vico.dateTimeEnd,
-                  });
+                  })
                 }
-              });
+              })
             }
-          });
+          })
           if (isCollision) {
             return response.send({
               success: true,
               collision: true,
               message: unique(Array.from(objectCollision)),
-            });
+            })
           } else {
-            isVicoEdit = true;
+            isVicoEdit = true
           }
         } else {
-          isVicoEdit = true;
+          isVicoEdit = true
         }
         if (isVicoEdit) {
           const source: VicoMainModel = await this.vicoMainService.one({
             where: { id: body.id },
-          });
+          })
           const result: VicoMainModel = await this.vicoMainService.update({
             where: { id: body.id },
             data: body.vico,
-          });
+          })
           this.logger.info({
             type: 'vico-update',
             ip: ip,
@@ -349,23 +349,23 @@ export class VicoController {
             computer: body.computer,
             source: source,
             result: result,
-          });
-          this.socket.server.emit('vicoUpdate', { vico: result });
-          response.send({ success: true });
+          })
+          this.socket.server.emit('vicoUpdate', { vico: result })
+          response.send({ success: true })
         }
       }
     } catch (err) {
-      console.log(err);
+      console.log(err)
       this.logger.error({
         type: 'vico-update',
         ip: ip,
         login: body.login,
         computer: body.computer,
-      });
+      })
       response.send({
         success: false,
         message: 'Непредвиденная ошибка на сервере',
-      });
+      })
     }
   }
 
@@ -374,20 +374,20 @@ export class VicoController {
   async moved(
     @Req() request: FastifyRequest,
     @Res() response: FastifyReply,
-    @Ip() ip: string,
+    @Ip() ip: string
   ) {
     const body = request.body as {
-      id: number;
-      vico: VicoMainModel;
-      login: string;
-      computer: string;
-    };
+      id: number
+      vico: VicoMainModel
+      login: string
+      computer: string
+    }
     try {
       const profile: ProfileModel = await this.profileService.one({
         where: {
           login: body.login,
         },
-      });
+      })
       if (
         profile.role < 1 &&
         !intersects(this.options.superAdministrator, [body.login.toLowerCase()])
@@ -395,39 +395,39 @@ export class VicoController {
         response.send({
           success: false,
           message: 'У вас нет прав на перенос записи ВКС в архив',
-        });
+        })
       } else {
         const source: VicoMainModel = await this.vicoMainService.delete({
           where: {
             id: body.id,
           },
-        });
-        this.socket.server.emit('vicoDelete', { id: source.id });
-        delete source.id;
+        })
+        this.socket.server.emit('vicoDelete', { id: source.id })
+        delete source.id
         const result: VicoArchiveModel = await this.vicoArchiveService.create({
           data: source,
-        });
+        })
         this.logger.info({
           type: 'vico-archive',
           ip: ip,
           login: body.login,
           computer: body.computer,
           archive: result,
-        });
-        response.send({ success: true });
+        })
+        response.send({ success: true })
       }
     } catch (err) {
-      console.log(err);
+      console.log(err)
       this.logger.error({
         type: 'vico-moved',
         ip: ip,
         login: body.login,
         computer: body.computer,
-      });
+      })
       response.send({
         success: false,
         message: 'Непредвиденная ошибка на сервере',
-      });
+      })
     }
   }
 
@@ -436,19 +436,19 @@ export class VicoController {
   async delete(
     @Req() request: FastifyRequest,
     @Res() response: FastifyReply,
-    @Ip() ip: string,
+    @Ip() ip: string
   ) {
     const body = request.body as {
-      id: number;
-      login: string;
-      computer: string;
-    };
+      id: number
+      login: string
+      computer: string
+    }
     try {
       const profile: ProfileModel = await this.profileService.one({
         where: {
           login: body.login,
         },
-      });
+      })
 
       if (
         profile.role < 1 &&
@@ -457,33 +457,33 @@ export class VicoController {
         response.send({
           success: false,
           message: 'У вас нет прав на удаление записи ВКС',
-        });
+        })
       } else {
         const vico: VicoMainModel = await this.vicoMainService.delete({
           where: { id: body.id },
-        });
-        this.socket.server.emit('vicoDelete', { id: vico.id });
+        })
+        this.socket.server.emit('vicoDelete', { id: vico.id })
         this.logger.info({
           type: 'vico-delete',
           ip: ip,
           login: body.login,
           computer: body.computer,
           vico,
-        });
-        response.send({ success: true });
+        })
+        response.send({ success: true })
       }
     } catch (err) {
-      console.log(err);
+      console.log(err)
       this.logger.error({
         type: 'vico-delete',
         ip: ip,
         login: body.login,
         computer: body.computer,
-      });
+      })
       response.send({
         success: false,
         message: 'Непредвиденная ошибка на сервере',
-      });
+      })
     }
   }
 }

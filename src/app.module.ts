@@ -9,7 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { Format, format } from 'logform';
+import { format } from 'logform';
 
 class TimestampFirst {
   enabled: boolean;
@@ -18,12 +18,10 @@ class TimestampFirst {
   }
   transform(obj: any): any {
     if (this.enabled) {
-      return Object.assign(
-        {
-          timestamp: obj.timestamp,
-        },
-        obj,
-      );
+      return {
+        timestamp: obj.timestamp,
+        ...obj,
+      };
     }
     return obj;
   }

@@ -1,4 +1,15 @@
 {
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "semi": false,
   "singleQuote": true,
-  "trailingComma": "all"
+  "bracketSameLine": true,
+  "vueIndentScriptAndStyle": false,
+  "endOfLine": "auto",
+  "singleAttributePerLine": false,
+  "proseWrap": "never",
+  "experimentalTernaries": true,
+  "printWidth": 80,
+  "bracketSpacing": true,
+  "arrowParens": "always"
 }
