@@ -17,6 +17,6 @@ async function bootstrap() {
   await app.register(fastifyCsrf)
   await app.register(helmet)
   app.enableCors()
-  await app.listen(3000, '10.27.0.243')
+  await app.listen(3000, '192.168.0.10')
 }
 bootstrap()
