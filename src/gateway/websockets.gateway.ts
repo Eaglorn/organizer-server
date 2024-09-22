@@ -23,7 +23,7 @@ interface TechWorkData {
   type: number
 }
 
-@WebSocketGateway()
+@WebSocketGateway(null, { transports: ['websocket'] })
 export class WebsocketsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
