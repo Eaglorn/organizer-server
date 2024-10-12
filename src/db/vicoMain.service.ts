@@ -4,7 +4,7 @@ import { VicoMain, Prisma } from '@prisma/client'
 
 @Injectable()
 export class VicoMainService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async one(params: {
     where: Prisma.VicoMainWhereInput

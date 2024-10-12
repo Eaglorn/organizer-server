@@ -4,7 +4,7 @@ import { VicoArchive, Prisma } from '@prisma/client'
 
 @Injectable()
 export class VicoArchiveService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async one(params: {
     where: Prisma.VicoArchiveWhereInput

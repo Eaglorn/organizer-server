@@ -4,7 +4,7 @@ import { Subscribe, Prisma } from '@prisma/client'
 
 @Injectable()
 export class SubscribeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async Subscribe(
     SubscribeWhereUniqueInput: Prisma.SubscribeWhereUniqueInput
