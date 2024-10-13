@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common'
 
 @Injectable()
 export class OptionService {
@@ -18,7 +18,7 @@ export class OptionService {
     'Все обособленные подразделения',
     'Налогоплательщик',
     'Администрация',
-  ];
+  ]
 
   readonly optionDepartament: string[] = [
     'Налогоплательщик',
@@ -72,19 +72,19 @@ export class OptionService {
     '46 - Правовой отдел №2',
     '47 - Правовой отдел №3',
     '48 - Правовой отдел №4',
-  ];
+  ]
 
   readonly optionTypeVico: string[] = [
     'ВКС',
     'Допрос',
     'Федеральный ВКС',
     'Совещание',
-  ];
+  ]
 
   readonly superAdministrator: string[] = [
     'admin',
     'администратор',
     'eaglorn',
     'averin',
-  ];
+  ]
 }
