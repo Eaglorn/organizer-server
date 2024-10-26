@@ -37,7 +37,6 @@ class TimestampFirst {
     ]),
     DBServiceModule,
     WebsocketsGatewayModule,
-    DBServiceModule,
     ControllerModule,
     UtilsModule,
     ScheduleModule.forRoot(),
